@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reverse Mentoring Journey</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #0a0a0a;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .rm-wrap {
+    background: #111111;
+    border-radius: 16px;
+    overflow: hidden;
+    color: #F5F2EC;
+    width: 100%;
+    max-width: 640px;
+    position: relative;
+  }
+
+  .rm-header {
+    text-align: center;
+    padding: 28px 20px 14px;
+    border-bottom: 1px solid #222;
+  }
+  .rm-title {
+    font-family: 'Bebas Neue', cursive;
+    font-size: clamp(36px, 8vw, 50px);
+    line-height: 0.9;
+    color: #F5F2EC;
+    letter-spacing: 2px;
+  }
+  .rm-title span { color: #E8192C; }
+  .rm-sub {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: #555;
+    text-transform: uppercase;
+    margin-top: 8px;
+  }
+
+  .rm-stats {
+    display: flex;
+    border-bottom: 1px solid #1e1e1e;
+  }
+  .rm-stat {
+    flex: 1;
+    text-align: center;
+    padding: 12px 8px;
+    border-right: 1px solid #1e1e1e;
+  }
+  .rm-stat:last-child { border-right: none; }
+  .rm-stat-val {
+    font-family: 'Bebas Neue', cursive;
+    font-size: 22px;
+    color: #F0C040;
+  }
+  .rm-stat-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: #444;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+
+  .rm-progress-wrap {
+    margin: 14px 20px 0;
+    background: #1e1e1e;
+    border-radius: 20px;
+    height: 6px;
+    overflow: hidden;
+  }
+  .rm-progress-fill {
+    height: 100%;
+    background: #E8192C;
+    border-radius: 20px;
+    transition: width 0.5s ease;
+    width: 0%;
+  }
+
+  .track-scroll {
+    overflow-x: auto;
+    padding: 20px 20px 8px;
+    scrollbar-width: none;
+  }
+  .track-scroll::-webkit-scrollbar { display: none; }
+
+  .track-row {
+    display: flex;
+    align-items: center;
+    min-width: max-content;
+  }
+
+  .stop-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 72px;
+    flex-shrink: 0;
+    cursor: pointer;
+  }
+
+  .stop-bubble {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    border: 2px solid #2a2a2a;
+    background: #1a1a1a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    color: #333;
+    transition: all 0.25s;
+    position: relative;
+    flex-shrink: 0;
+    font-family: 'DM Mono', monospace;
+    font-weight: 500;
+  }
+  .stop-bubble.active {
+    border-color: #E8192C;
+    background: #1f0305;
+    box-shadow: 0 0 0 3px rgba(232,25,44,0.15);
+  }
+  .stop-bubble.done { border-color: #2d5a1b; background: #0e1f08; }
+  .stop-bubble.special-done { border-color: #7a5800; background: #1f1500; }
+
+  .stop-num {
+    position: absolute;
+    top: -6px; right: -5px;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    font-weight: 500;
+    display: flex; align-items: center; justify-content: center;
+    background: #111;
+    border: 1.5px solid #333;
+    color: #555;
+  }
+  .stop-num.active { background: #E8192C; border-color: #E8192C; color: white; }
+  .stop-num.done { background: #1e3a10; border-color: #3a6b20; color: #7dc855; }
+  .stop-num.special { background: #3a2800; border-color: #7a5800; color: #F0C040; }
+
+  .stop-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    color: #333;
+    text-align: center;
+    margin-top: 7px;
+    line-height: 1.3;
+    max-width: 68px;
+    transition: color 0.25s;
+  }
+  .stop-label.active { color: #E8192C; }
+  .stop-label.done { color: #3a6b20; }
+  .stop-label.special-done { color: #7a5800; }
+
+  .connector {
+    width: 18px;
+    height: 3px;
+    background: #1e1e1e;
+    align-self: center;
+    margin-bottom: 30px;
+    flex-shrink: 0;
+    transition: background 0.4s;
+  }
+  .connector.done { background: #2d5a1b; }
+  .connector.active { background: #E8192C; }
+
+  .reveal-panel {
+    margin: 4px 20px 0;
+    border: 1.5px solid #2a2a2a;
+    border-radius: 12px;
+    background: #151515;
+    padding: 16px;
+    min-height: 100px;
+    transition: border-color 0.3s;
+  }
+  .reveal-panel.active-panel { border-color: #E8192C; }
+  .reveal-panel.done-panel { border-color: #2d5a1b; }
+  .reveal-panel.special-panel { border-color: #7a5800; }
+
+  .rp-eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #555;
+    margin-bottom: 6px;
+  }
+  .rp-eyebrow.active { color: #E8192C; }
+  .rp-eyebrow.done { color: #3a6b20; }
+  .rp-eyebrow.special { color: #7a5800; }
+
+  .rp-title {
+    font-family: 'Bebas Neue', cursive;
+    font-size: 22px;
+    letter-spacing: 1px;
+    color: #F5F2EC;
+    margin-bottom: 6px;
+  }
+  .rp-desc { font-size: 13px; color: #888; line-height: 1.55; }
+
+  .rp-badge {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 3px 12px;
+    border-radius: 20px;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    background: rgba(232,25,44,0.12);
+    color: #E8192C;
+    border: 1px solid rgba(232,25,44,0.25);
+  }
+  .rp-badge.gold { background: rgba(240,192,64,0.12); color: #F0C040; border-color: rgba(240,192,64,0.25); }
+  .rp-badge.green { background: rgba(76,175,80,0.1); color: #4caf50; border-color: rgba(76,175,80,0.2); }
+
+  .nav-row {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin: 14px 20px 20px;
+  }
+  .nav-btn {
+    background: #1a1a1a;
+    border: 1.5px solid #2a2a2a;
+    border-radius: 8px;
+    padding: 9px 22px;
+    color: #888;
+    font-family: 'Bebas Neue', cursive;
+    font-size: 16px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .nav-btn:hover { border-color: #444; color: #F5F2EC; background: #222; }
+  .nav-btn.primary { background: #E8192C; border-color: #E8192C; color: white; }
+  .nav-btn.primary:hover { background: #ff2d40; }
+  .nav-btn:disabled { opacity: 0.3; cursor: default; pointer-events: none; }
+
+  /* Win overlay */
+  .win-overlay {
+    display: none;
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.93);
+    border-radius: 16px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 40px 24px;
+    z-index: 20;
+  }
+  .win-overlay.show { display: flex; }
+
+  .win-trophy {
+    font-size: 72px;
+    animation: trophy-rock 2s ease-in-out infinite;
+  }
+  @keyframes trophy-rock {
+    0%,100% { transform: rotate(-8deg) scale(1); }
+    50% { transform: rotate(8deg) scale(1.08); }
+  }
+  .win-title {
+    font-family: 'Bebas Neue', cursive;
+    font-size: clamp(32px, 8vw, 44px);
+    color: #F0C040;
+    letter-spacing: 3px;
+    margin-top: 14px;
+    text-shadow: 2px 2px 0 #7a5800;
+  }
+  .win-sub {
+    font-size: 14px;
+    color: #999;
+    margin-top: 10px;
+    line-height: 1.7;
+    max-width: 320px;
+  }
+  .win-coins {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: #7a5800;
+    letter-spacing: 2px;
+    margin-top: 14px;
+  }
+</style>
+</head>
+<body>
+
+<div class="rm-wrap" id="rmWrap">
+  <div class="rm-header">
+    <div class="rm-title">REVERSE<br><span>MENTORING</span></div>
+    <div class="rm-sub">★ Your journey map ★</div>
+  </div>
+
+  <div class="rm-stats">
+    <div class="rm-stat">
+      <div class="rm-stat-val" id="s-unlocked">0</div>
+      <div class="rm-stat-label">Unlocked</div>
+    </div>
+    <div class="rm-stat">
+      <div class="rm-stat-val" id="s-xp">0</div>
+      <div class="rm-stat-label">XP</div>
+    </div>
+    <div class="rm-stat">
+      <div class="rm-stat-val">11</div>
+      <div class="rm-stat-label">Total</div>
+    </div>
+  </div>
+
+  <div class="rm-progress-wrap">
+    <div class="rm-progress-fill" id="progFill"></div>
+  </div>
+
+  <div class="track-scroll">
+    <div class="track-row" id="trackRow"></div>
+  </div>
+
+  <div class="reveal-panel" id="revealPanel">
+    <div class="rp-eyebrow" id="rpEye">Stage 1</div>
+    <div class="rp-title" id="rpTitle">?</div>
+    <div class="rp-desc" id="rpDesc"></div>
+  </div>
+
+  <div class="nav-row" id="navRow">
+    <button class="nav-btn" id="btnBack" onclick="goBack()">Back</button>
+    <button class="nav-btn primary" id="btnNext" onclick="goNext()">Unlock Next</button>
+  </div>
+
+  <div class="win-overlay" id="winOverlay">
+    <div class="win-trophy">🏆</div>
+    <div class="win-title">Treasure Unlocked!</div>
+    <div class="win-sub">You've completed the full reverse mentoring journey.<br>Every session. Every check-in. You made it.</div>
+    <div class="win-coins" id="winCoins">★ TOTAL XP: 0 ★</div>
+    <button class="nav-btn primary" style="margin-top:20px" onclick="resetAll()">Start Over</button>
+  </div>
+</div>
+
+<script>
+const stages = [
+  { label:"Fill form",       revealLabel:"Fill form",       icon:"📋", stage:"Stage 1 · Start",       title:"Fill the interest form",     desc:"Your adventure begins! Share your interests and expertise. This is where the magic of reverse mentoring starts.",                          xp:50,   type:"normal" },
+  { label:"Get paired",      revealLabel:"Get paired",      icon:"🤝", stage:"Stage 2 · Matching",     title:"Get paired",                 desc:"The system finds your perfect match. A mentor and mentee come together based on shared goals and complementary skills.",              xp:100,  type:"normal" },
+  { label:"Onboarding",      revealLabel:"Onboarding",      icon:"🎉", stage:"Stage 3 · Kickoff",      title:"Fun onboarding session",     desc:"Break the ice! Get to know each other, set expectations, and lay the ground rules for a great partnership.",                         xp:150,  type:"special" },
+  { label:"Session 1",       revealLabel:"Session 1",       icon:"⚡", stage:"Stage 4 · Session",      title:"Conduct session 1",          desc:"First official session! Dive into your first topic and start building that unique reverse mentoring dynamic.",                       xp:200,  type:"normal" },
+  { label:"Session 2",       revealLabel:"Session 2",       icon:"🔥", stage:"Stage 5 · Session",      title:"Conduct session 2",          desc:"Deeper conversations, fresh insights. You're finding your groove and the learning is flowing both ways.",                           xp:200,  type:"normal" },
+  { label:"Session 3",       revealLabel:"Session 3",       icon:"💥", stage:"Stage 6 · Session",      title:"Conduct session 3",          desc:"Momentum is building! Three sessions in — real trust is forming and perspectives are shifting.",                                    xp:200,  type:"normal" },
+  { label:"Check-in",        revealLabel:"Check-in",        icon:"🌟", stage:"Stage 7 · Checkpoint",   title:"Mid-cycle check-in",         desc:"Halfway there! Reflect on what's working, calibrate goals, and collect your mid-journey rewards before the final push.",           xp:300,  type:"gold" },
+  { label:"Session 4",       revealLabel:"Session 4",       icon:"🚀", stage:"Stage 8 · Session",      title:"Conduct session 4",          desc:"Recharged after the check-in and armed with fresh clarity — you're pushing further than ever.",                                    xp:200,  type:"normal" },
+  { label:"Session 5",       revealLabel:"Session 5",       icon:"⭐", stage:"Stage 9 · Session",      title:"Conduct session 5",          desc:"Almost there! Your fifth session brings the relationship to full bloom — deep trust and real growth.",                              xp:200,  type:"normal" },
+  { label:"Session 6",       revealLabel:"Session 6",       icon:"👑", stage:"Stage 10 · Mega Reward", title:"Conduct session 6",          desc:"The big one! Final session unlocks your crown achievement. Maximum XP, legendary status, and a huge reward.",                      xp:500,  type:"mega" },
+  { label:"Final check-in",  revealLabel:"Final check-in",  icon:"🏁", stage:"Stage 11 · Finish",      title:"Final check-in",             desc:"Cross the finish line! Celebrate your journey, share your learnings, and claim the ultimate reverse mentoring treasure.",          xp:1000, type:"finish" },
+];
+
+let current = 0, unlockedUpTo = -1, totalXP = 0;
+
+function isGold(t) { return t === "gold" || t === "finish" || t === "mega"; }
+
+function buildBubble(i, state) {
+  const s = stages[i];
+  const bub = document.getElementById("bub-" + i);
+  const lbl = document.getElementById("lbl-" + i);
+  bub.innerHTML = "";
+  const num = document.createElement("div");
+  num.id = "num-" + i;
+  if (state === "done") {
+    bub.className = isGold(s.type) ? "stop-bubble special-done" : "stop-bubble done";
+    bub.appendChild(document.createTextNode(s.icon));
+    num.className = isGold(s.type) ? "stop-num special" : "stop-num done";
+    num.textContent = i + 1;
+    bub.appendChild(num);
+    lbl.className = isGold(s.type) ? "stop-label special-done" : "stop-label done";
+    lbl.textContent = s.revealLabel;
+  } else if (state === "active") {
+    bub.className = "stop-bubble active";
+    bub.appendChild(document.createTextNode("?"));
+    num.className = "stop-num active";
+    num.textContent = i + 1;
+    bub.appendChild(num);
+    lbl.className = "stop-label active";
+    lbl.textContent = "?";
+  } else {
+    bub.className = "stop-bubble";
+    bub.appendChild(document.createTextNode("?"));
+    num.className = "stop-num";
+    num.textContent = i + 1;
+    bub.appendChild(num);
+    lbl.className = "stop-label";
+    lbl.textContent = "?";
+  }
+}
+
+function buildTrack() {
+  const row = document.getElementById("trackRow");
+  row.innerHTML = "";
+  stages.forEach((s, i) => {
+    if (i > 0) {
+      const c = document.createElement("div");
+      c.className = "connector"; c.id = "conn-" + i;
+      row.appendChild(c);
+    }
+    const wrap = document.createElement("div");
+    wrap.className = "stop-wrap";
+    wrap.onclick = () => select(i);
+    const bubble = document.createElement("div");
+    bubble.id = "bub-" + i; bubble.className = "stop-bubble";
+    bubble.textContent = "?";
+    const num = document.createElement("div");
+    num.id = "num-" + i; num.className = "stop-num"; num.textContent = i + 1;
+    bubble.appendChild(num);
+    const lbl = document.createElement("div");
+    lbl.id = "lbl-" + i; lbl.className = "stop-label"; lbl.textContent = "?";
+    wrap.appendChild(bubble); wrap.appendChild(lbl);
+    row.appendChild(wrap);
+  });
+  render();
+}
+
+function render() {
+  stages.forEach((s, i) => {
+    const conn = document.getElementById("conn-" + i);
+    if (i <= unlockedUpTo) {
+      buildBubble(i, "done");
+      if (conn) conn.className = "connector done";
+    } else if (i === current) {
+      buildBubble(i, "active");
+      if (conn) conn.className = "connector active";
+    } else {
+      buildBubble(i, "locked");
+      if (conn) conn.className = "connector";
+    }
+  });
+  updatePanel(); updateStats(); scrollToCurrent();
+}
+
+function updatePanel() {
+  const s = stages[current];
+  const panel = document.getElementById("revealPanel");
+  const eye = document.getElementById("rpEye");
+  const title = document.getElementById("rpTitle");
+  const desc = document.getElementById("rpDesc");
+  const ex = document.getElementById("rpBadge");
+  if (ex) ex.remove();
+  const isUnlocked = current <= unlockedUpTo;
+  if (isUnlocked) {
+    const gold = isGold(s.type);
+    panel.className = gold ? "reveal-panel special-panel" : "reveal-panel done-panel";
+    eye.className = gold ? "rp-eyebrow special" : "rp-eyebrow done";
+    eye.textContent = s.stage; title.textContent = s.title; desc.textContent = s.desc;
+    const badge = document.createElement("span");
+    badge.id = "rpBadge";
+    badge.className = gold ? "rp-badge gold" : "rp-badge green";
+    let bt = "+" + s.xp + " XP";
+    if (s.type === "gold") bt += "  ★ checkpoint";
+    if (s.type === "mega") bt += "  ✦ mega reward";
+    if (s.type === "finish") bt += "  ★ treasure";
+    badge.textContent = bt;
+    panel.appendChild(badge);
+  } else if (current === unlockedUpTo + 1) {
+    panel.className = "reveal-panel active-panel";
+    eye.className = "rp-eyebrow active";
+    eye.textContent = "Stage " + (current + 1) + " · Ready to unlock";
+    title.textContent = "?"; desc.textContent = "Hit 'Unlock Next' to reveal this stage.";
+  } else {
+    panel.className = "reveal-panel";
+    eye.className = "rp-eyebrow";
+    eye.textContent = "Stage " + (current + 1) + " · Locked";
+    title.textContent = "?"; desc.textContent = "Complete previous stages to unlock this one.";
+  }
+}
+
+function updateStats() {
+  document.getElementById("s-unlocked").textContent = Math.max(0, unlockedUpTo + 1);
+  document.getElementById("s-xp").textContent = totalXP;
+  const pct = unlockedUpTo < 0 ? 0 : Math.round(((unlockedUpTo + 1) / stages.length) * 100);
+  document.getElementById("progFill").style.width = pct + "%";
+}
+
+function scrollToCurrent() {
+  const scroll = document.querySelector(".track-scroll");
+  const allStops = document.querySelectorAll(".stop-wrap");
+  const stopEl = allStops[current];
+  if (scroll && stopEl) {
+    const left = stopEl.offsetLeft - scroll.clientWidth / 2 + stopEl.clientWidth / 2;
+    scroll.scrollTo({ left, behavior: "smooth" });
+  }
+}
+
+function select(i) { current = i; render(); }
+
+function goNext() {
+  const next = unlockedUpTo + 1;
+  if (next >= stages.length) return;
+  totalXP += stages[next].xp;
+  unlockedUpTo = next;
+  current = next;
+  render();
+  if (unlockedUpTo === stages.length - 1) {
+    document.getElementById("btnNext").disabled = true;
+    setTimeout(() => {
+      document.getElementById("winCoins").textContent = "★ TOTAL XP: " + totalXP + " ★";
+      document.getElementById("navRow").style.display = "none";
+      document.getElementById("winOverlay").classList.add("show");
+    }, 2500);
+  }
+}
+
+function goBack() { if (current > 0) { current--; render(); } }
+
+function resetAll() {
+  current = 0; unlockedUpTo = -1; totalXP = 0;
+  document.getElementById("winOverlay").classList.remove("show");
+  document.getElementById("navRow").style.display = "flex";
+  document.getElementById("btnNext").disabled = false;
+  buildTrack();
+}
+
+buildTrack();
+</script>
+</body>
+</html>
